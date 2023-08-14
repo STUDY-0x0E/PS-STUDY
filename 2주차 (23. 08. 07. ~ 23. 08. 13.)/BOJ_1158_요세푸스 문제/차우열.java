@@ -71,7 +71,6 @@ public class Josephus3 {
 			cur.pre.next = cur.next;
 			cur = cur.pre;
 			cnt--;
-
 		}
 		
 		sb.append(cur.value).append(">");
