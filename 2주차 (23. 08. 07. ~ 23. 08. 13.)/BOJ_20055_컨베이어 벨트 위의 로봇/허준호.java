@@ -18,7 +18,7 @@ public class B20055 {
 		int n = Integer.parseInt(st.nextToken());// 벨트 길이 2N
 		int k = Integer.parseInt(st.nextToken());// 내구도 0인 칸의 최대개수 제한
 
-		List<Area> belt = new LinkedList<>();// belt durability
+		List<Area> belt = new LinkedList<>();
 		st = new StringTokenizer(br.readLine());
 		for (int i = 0; i < 2 * n; i++) {// n+1부터 아래쪽 벨트
 			Area a = new Area(Integer.parseInt(st.nextToken()));
