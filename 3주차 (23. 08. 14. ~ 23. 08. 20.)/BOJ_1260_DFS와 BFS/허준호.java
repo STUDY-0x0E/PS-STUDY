@@ -31,18 +31,18 @@ public class Main {
 
 		// dfs
 		boolean[] visited = new boolean[n + 1];
-		Deque<Integer> deque = new LinkedList<>();
-		deque.add(v);
+		Stack<Integer> stack = new Stack<>();
+		stack.push(v);
 
-		while (!deque.isEmpty()) {
-			int cur = deque.pollLast();
+		while (!stack.isEmpty()) {
+			int cur = stack.pop();
 			if (!visited[cur]) {
 				sb.append(cur + " ");
 				visited[cur] = true;
 
 				for (int i = 0; i < list[cur].size(); i++) {
 					if (!visited[list[cur].get(i)]) {
-						deque.addLast(list[cur].get(i));
+						stack.push(list[cur].get(i));
 					}
 				}
 			}
@@ -55,7 +55,7 @@ public class Main {
 
 		// bfs
 		visited = new boolean[n + 1];
-		deque = new LinkedList<>();
+		Deque<Integer>deque = new LinkedList<>();
 		deque.add(v);
 
 		while (!deque.isEmpty()) {
