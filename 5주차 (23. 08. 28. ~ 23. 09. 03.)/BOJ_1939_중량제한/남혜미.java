@@ -1,134 +1,110 @@
-import java.awt.Point;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.util.ArrayDeque;
-import java.util.Comparator;
-import java.util.PriorityQueue;
-import java.util.Queue;
-import java.util.StringTokenizer;
-/*
-1. summary : 아기 상어 (크기 2)
-	수조 정보 0(빈공간), 1~8(물고기), 9(상어)
-	상어는 상하좌우로 움직일 수 있다.
-	1. 자기보다 작은 물고기만 먹을 수 있다. (자기 무게 수만큼 먹으면 크기가 커진다.)
-	2. 가장 가까운 물고기를 먹는다. (위쪽 -> 왼쪽 -> 오른쪽 -> 아래쪽)
-	3. 크기가 큰 물고기는 지나갈 수 없지만(벽), 크기가 같으면 지나갈 수 있다.
-	더이상 먹을 수 있는 물고기가 없으면 종료한다.
-2. strategy : BFS
-	거리가 한칸씩 넓어지는 범위에 물고기가 있는지 체크한다.
-	자신보다 작은 물고기가 있다면 멈춰서 먹는다.
-		먹은 물고기 수를 확인한다. => 무게만큼 먹었다면 무게를 증가시킨다.
-	더 이상 먹을 수 있는 물고기가 없다면 종료한다.
-		물고기를 다 먹은 경우
-		무게가 작은 물고기가 없는 경우
-3. note
-	 N(2 ≤ N ≤ 20) : N이 작은편에 속하기 때문에 완전 탐색 고려해볼만하다. 
-	 최악의 탐색 20*20 = 400, 물고기가 최대 20*20 = 400  => 160000
-*/
-public class Main {
+import java.util.*;
+import java.io.*;
 
-	// 상, 좌, 우, 하
-	static int dir[][] = {{-1,0},{0,-1},{0,1},{1,0}};
-	
-	static int N;
-	static int board[][];
-	
-	static Point shark;
-	static int sharkSize = 2, eatFish = 0; 
-	static int moveCnt = 0;
-	
-	public static void main(String[] args) throws Exception{
+public class BOJ1939 {
 
-		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-
-		// 데이터 입력
-		N = Integer.parseInt(br.readLine());
-		board = new int[N][N];
-		for(int i = 0; i < N; i++) {
-			StringTokenizer st = new StringTokenizer(br.readLine());
-			for(int j = 0; j < N; j++) {
-				board[i][j] = Integer.parseInt(st.nextToken());
-				if(board[i][j] == 9) shark = new Point(i,j); // 상어 위치
-			}
-		}
+	private static class City {
+		int name;
+		int weight;
 		
-		while(true) {
-			if(!findFish()) break; // 더 이상 찾은 물고기가 없다면 종료
+		public City(int name, int weight) {
+			super();
+			this.name = name;
+			this.weight = weight;
 		}
-		
-		System.out.println(moveCnt);
 	}
 	
-	private static boolean findFish() {
+	static int N, M, departCity, arriveCity;
+	static List<City> cityList[];
 	
-		int depthFlag = 0;
-		int visit[][] = new int[N][N]; // 방문 배열
+	static int start = Integer.MAX_VALUE, end = 0;
+	static int standardWeight = 0;
+	static int result = 0;
+	
+	public static void main(String[] args) throws Exception {
 		
-		// 잡아먹을 물고기 후보
-		PriorityQueue<Point> fishList = new PriorityQueue<>(new Comparator<Point>(){
-			@Override
-			public int compare(Point o1, Point o2) {
-				if(o1.x == o2.x) {
-					return o1.y - o2.y;
-				}
-				return o1.x - o2.x;
-			}
-		});
-		Queue<Point> checkFish = new ArrayDeque<>(); // 상어가 이동할 위치 후보
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		
-		checkFish.offer(new Point(shark.x, shark.y)); // 상어 이동 시작
-		visit[shark.x][shark.y] = 1;
-		board[shark.x][shark.y] = 0;
+		StringTokenizer st = new StringTokenizer(br.readLine());
+		N = Integer.parseInt(st.nextToken());
+		M = Integer.parseInt(st.nextToken());
 		
-		while(!checkFish.isEmpty()) {
-			Point current = checkFish.poll();
-			
-			if(depthFlag == visit[current.x][current.y]) { // 물고기 발견시 depth 달라지면
-				checkFish.clear(); // 추가 물고기 탐색 종료 
-				continue;
-			}
-			
-			for(int i = 0; i < 4; i++) {
-				int mx = current.x + dir[i][0];
-				int my = current.y + dir[i][1];
-				
-				if(mx < 0 || mx >= N || my < 0 || my >= N) continue; // 영역 벗어남
-				if(visit[mx][my] != 0) continue; // 이미 방문
-				
-				if(board[mx][my] != 0) { // 물고기 발견
-					if(board[mx][my] > sharkSize) continue; // 물고기 > 상어 (벽)
-					else if(board[mx][my] < sharkSize) { // 물고기 < 상어 
-						fishList.offer(new Point(mx, my));
-						
-						if(depthFlag == 0) { // 물고기 처음 방문 (현재 depth 기록)
-							depthFlag = visit[current.x][current.y] + 1;
-						}
-					}
-					else ; // 물고기 = 상어
-				}
-				
-				checkFish.offer(new Point(mx, my));
-				visit[mx][my] = visit[current.x][current.y] + 1; // 방문처리 depth 계산
-			}
+		cityList = new ArrayList[N+1]; // 도시번호 1~N
+		for(int i = 0; i <= N; i++) {
+			cityList[i] = new ArrayList<City>();
 		}
 		
-		
-		if(fishList.isEmpty()) return false; // 찾은 물고기가 없다면 false (사냥 중단)
-		else { // 찾은 물고기가 있다면
+		for(int i = 0; i < M; i++) {
+			st = new StringTokenizer(br.readLine());
+			int city1 = Integer.parseInt(st.nextToken());
+			int city2 = Integer.parseInt(st.nextToken());
+			int weight = Integer.parseInt(st.nextToken());
 			
-			board[shark.x][shark.y] = 0; // 원래 상어 위치 흔적 지우기
-
-			shark = fishList.poll(); // x, y 위치가 가장 작은 물고기 선택
-			board[shark.x][shark.y] = 9; // 상어 위치 이동
-
-			moveCnt += (visit[shark.x][shark.y]-1); // 이동 횟수 체크
+			cityList[city1].add(new City(city2, weight));
+			cityList[city2].add(new City(city1, weight));
 			
-			eatFish++;
-			if(eatFish == sharkSize) { // 크기만큼 먹을시
-				sharkSize++; // 크키 증가
-				eatFish = 0;
-			}
-			return true;
+			end = Math.max(weight, end);
+			start = Math.min(weight, start);
 		}
+		
+		st = new StringTokenizer(br.readLine());
+		departCity = Integer.parseInt(st.nextToken());
+		arriveCity = Integer.parseInt(st.nextToken());
+		
+		// result = start;
+		while(end >= start) {
+			chooseStandardWeight();
+		}
+		
+		System.out.println(result);
+	}
+	
+	private static void chooseStandardWeight() {
+		
+		standardWeight = (start + end) / 2;
+		
+		// System.out.println(standardWeight);
+		
+		if(findRoute()) { // 경로 탐색 가능 (기준 무게 증가)
+			result = standardWeight;
+			start = standardWeight + 1;
+		}
+		else { // 경로 탐색 실패 (기준 무게 감소)
+			end = standardWeight - 1;
+		}
+	}
+
+	private static boolean findRoute() {
+		
+		boolean flag = false;
+		boolean visit[] = new boolean[N+1]; // 방문체크 배열
+		
+		Queue<Integer> nextCity = new ArrayDeque<>();
+		nextCity.offer(departCity);
+		
+		visit[departCity] = true; // 방문 체크
+		
+		while(!nextCity.isEmpty()) {
+			int current = nextCity.poll();
+			
+			for(int i = 0; i < cityList[current].size(); i++) {
+				
+				City next = cityList[current].get(i);
+				
+				if(visit[next.name]) continue; // 이미 방문한 도시 
+				if(next.weight < standardWeight) continue; // 기준 무게 넘어서면 패스 (벽)
+				
+				visit[next.name] = true;
+				nextCity.offer(next.name);
+				
+				if(next.name == arriveCity) { // 도착 도시 도착시 길 탐색 종료
+					flag = true;
+					nextCity.getClass();
+					break;
+				}
+			}
+		}
+		// System.out.println(flag);
+		return flag;
 	}
 }
