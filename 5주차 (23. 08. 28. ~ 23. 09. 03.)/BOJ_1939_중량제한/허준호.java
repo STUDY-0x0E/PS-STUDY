@@ -1,92 +1,86 @@
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.util.*;
+
+class Edge {
+    int to;
+    int weight;
+
+    public Edge(int to, int weight) {
+        this.to = to;
+        this.weight = weight;
+    }
+}
 
 public class Main {
-    public static void main(String[] args) throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(System.out));
+    static final int INF = Integer.MAX_VALUE;
+    static List<Edge>[] graph;
 
-        int[][] board = new int[9][9];
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int N = sc.nextInt(); // 섬의 개수
+        int M = sc.nextInt(); // 다리의 개수
+        graph = new ArrayList[N + 1];
 
-        for (int i = 0; i < 9; i++) {
-            String[] row = br.readLine().split(" ");
-            for (int j = 0; j < 9; j++) {
-                board[i][j] = Integer.parseInt(row[j]);
+        for (int i = 1; i <= N; i++) {
+            graph[i] = new ArrayList<>();
+        }
+
+        int maxWeight = 0; // 가능한 최대 중량
+
+        for (int i = 0; i < M; i++) {
+            int from = sc.nextInt(); // 출발 섬 번호
+            int to = sc.nextInt(); // 도착 섬 번호
+            int weight = sc.nextInt(); // 중량 제한
+            graph[from].add(new Edge(to, weight));
+            graph[to].add(new Edge(from, weight));
+            maxWeight = Math.max(maxWeight, weight);
+        }
+
+        int start = sc.nextInt(); // 공장이 있는 섬 번호
+        int end = sc.nextInt(); // 목적지 섬 번호
+
+        int result = binarySearch(start, end, maxWeight);
+        System.out.println(result);
+    }
+
+    static int binarySearch(int start, int end, int maxWeight) {// 이분 탐색
+        int left = 1;
+        int right = maxWeight;
+        int answer = 0;
+
+        while (left <= right) {
+            int mid = (left + right) / 2;
+
+            if (isPossible(start, end, mid)) {
+                answer = mid;
+                left = mid + 1;
+            } else {
+                right = mid - 1;
             }
         }
 
-        solveSudoku(board);//재귀 dfs
-        bw.write(boardToString(board));//결과 출력
-        bw.close();
+        return answer;
     }
+    
+    static boolean isPossible(int start, int end, int maxWeight) {// 다리를 건널 수 있는지 확인
+        boolean[] visited = new boolean[graph.length];
+        visited[start] = true;
 
-    public static boolean solveSudoku(int[][] board) {
-        int[] emptyCell = findEmptyCell(board);//빈칸 찾기
+        List<Integer> queue = new ArrayList<>();
+        queue.add(start);
 
-        if (emptyCell == null) {//빈칸이 없는 경우 종료
-            return true;
-        }
+        while (!queue.isEmpty()) {//bfs
+            int currentCity = queue.remove(0);
 
-        int row = emptyCell[0];
-        int col = emptyCell[1];
+            if (currentCity == end) return true;
 
-        for (int num = 1; num <= 9; num++) {
-            if (isValid(board, row, col, num)) {//문제조건에 맞는지 확인
-                board[row][col] = num;
-
-                if (solveSudoku(board)) {
-                    return true;
+            for (Edge neighbor : graph[currentCity]) {// 방문하지 않았고, 현재 중량 이상의 다리를 통해 이동 가능한 경우
+                if (!visited[neighbor.to] && neighbor.weight >= maxWeight) {
+                    visited[neighbor.to] = true;
+                    queue.add(neighbor.to);
                 }
-
-                board[row][col] = 0;//빈칸 처리
             }
         }
 
         return false;
-    }
-
-    public static int[] findEmptyCell(int[][] board) {
-        for (int i = 0; i < 9; i++) {
-            for (int j = 0; j < 9; j++) {
-                if (board[i][j] == 0) {
-                    return new int[]{i, j};
-                }
-            }
-        }
-        return null;
-    }
-
-    public static boolean isValid(int[][] board, int row, int col, int num) {
-        for (int i = 0; i < 9; i++) {
-            if (board[row][i] == num || board[i][col] == num) {
-                return false;
-            }
-        }
-
-        int startRow = row - row % 3;
-        int startCol = col - col % 3;
-        for (int i = startRow; i < startRow + 3; i++) {
-            for (int j = startCol; j < startCol + 3; j++) {
-                if (board[i][j] == num) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    public static String boardToString(int[][] board) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 9; i++) {
-            for (int j = 0; j < 9; j++) {
-                sb.append(board[i][j]).append(" ");
-            }
-            sb.append("\n");
-        }
-        return sb.toString();
     }
 }
