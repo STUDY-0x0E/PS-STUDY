@@ -1,92 +1,69 @@
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.util.*;
 
 public class Main {
-    public static void main(String[] args) throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(System.out));
+    static class Edge implements Comparable<Edge> {
+        int to;
+        int cost;
 
-        int[][] board = new int[9][9];
-
-        for (int i = 0; i < 9; i++) {
-            String[] row = br.readLine().split(" ");
-            for (int j = 0; j < 9; j++) {
-                board[i][j] = Integer.parseInt(row[j]);
-            }
+        public Edge(int to, int cost) {
+            this.to = to;
+            this.cost = cost;
         }
 
-        solveSudoku(board);//재귀 dfs
-        bw.write(boardToString(board));//결과 출력
-        bw.close();
+        @Override
+        public int compareTo(Edge other) {
+            return Integer.compare(this.cost, other.cost);
+        }
     }
 
-    public static boolean solveSudoku(int[][] board) {
-        int[] emptyCell = findEmptyCell(board);//빈칸 찾기
+    static final int INF = Integer.MAX_VALUE;
+    static List<Edge>[] graph;
 
-        if (emptyCell == null) {//빈칸이 없는 경우 종료
-            return true;
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int N = sc.nextInt();  // 도시의 개수
+        int M = sc.nextInt();  // 버스의 개수
+        graph = new ArrayList[N + 1];
+
+        for (int i = 1; i <= N; i++) {
+            graph[i] = new ArrayList<>();
         }
 
-        int row = emptyCell[0];
-        int col = emptyCell[1];
-
-        for (int num = 1; num <= 9; num++) {
-            if (isValid(board, row, col, num)) {//문제조건에 맞는지 확인
-                board[row][col] = num;
-
-                if (solveSudoku(board)) {
-                    return true;
-                }
-
-                board[row][col] = 0;//빈칸 처리
-            }
+        for (int i = 0; i < M; i++) {
+            int from = sc.nextInt();   // 출발 도시 번호
+            int to = sc.nextInt();     // 도착 도시 번호
+            int cost = sc.nextInt();   // 버스 비용
+            graph[from].add(new Edge(to, cost));
         }
 
-        return false;
-    }
+        int start = sc.nextInt();  // 출발점 도시 번호
+        int end = sc.nextInt();    // 도착점 도시 번호
 
-    public static int[] findEmptyCell(int[][] board) {
-        for (int i = 0; i < 9; i++) {
-            for (int j = 0; j < 9; j++) {
-                if (board[i][j] == 0) {
-                    return new int[]{i, j};
-                }
-            }
-        }
-        return null;
-    }
+        int[] distance = new int[N + 1];
+        Arrays.fill(distance, INF);
+        distance[start] = 0;
 
-    public static boolean isValid(int[][] board, int row, int col, int num) {
-        for (int i = 0; i < 9; i++) {
-            if (board[row][i] == num || board[i][col] == num) {
-                return false;
-            }
-        }
+        PriorityQueue<Edge> pq = new PriorityQueue<>();
+        pq.add(new Edge(start, 0));
 
-        int startRow = row - row % 3;
-        int startCol = col - col % 3;
-        for (int i = startRow; i < startRow + 3; i++) {
-            for (int j = startCol; j < startCol + 3; j++) {
-                if (board[i][j] == num) {
-                    return false;
+        while (!pq.isEmpty()) {//다익스트라
+            Edge current = pq.poll();
+            int currentCity = current.to;
+            int currentCost = current.cost;
+
+            if (distance[currentCity] < currentCost) continue;
+
+            for (Edge neighbor : graph[currentCity]) {
+                int nextCity = neighbor.to;
+                int nextCost = currentCost + neighbor.cost;
+
+                if (nextCost < distance[nextCity]) {
+                    distance[nextCity] = nextCost;
+                    pq.add(new Edge(nextCity, nextCost));
                 }
             }
         }
 
-        return true;
-    }
-
-    public static String boardToString(int[][] board) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 9; i++) {
-            for (int j = 0; j < 9; j++) {
-                sb.append(board[i][j]).append(" ");
-            }
-            sb.append("\n");
-        }
-        return sb.toString();
+        System.out.println(distance[end]);  // 출발 도시에서 도착 도시까지의 최소 비용 출력
     }
 }
