@@ -1,6 +1,6 @@
 import java.io.*;
 import java.util.*;
-
+ 
 class Node {
     int to;
     int weight;
