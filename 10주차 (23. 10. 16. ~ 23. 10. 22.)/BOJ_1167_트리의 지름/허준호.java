@@ -10,7 +10,7 @@ class Node {
         this.weight = weight;
     }
 }
-
+ 
 public class Main {
     static ArrayList<Node>[] tree;
     static boolean[] visited;
