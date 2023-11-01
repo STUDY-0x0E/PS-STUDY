@@ -65,4 +65,73 @@ public class BOJ1450 {
 
 	}
 }
+/*
 
+package week11;
+
+
+strategy 
+중간에서 만나기(meet in the middle) 알고리즘을 사용하여 O(2^N)을 O(2*2^(N/2))로 만든다.
+주어진 입력을 절반씩 나눠서 가능한 경우의 수를 전부 구한다.
+투포인터를 사용하여 한쪽 입력의 합이 만들 수 있는 경우의 수를 구한다.
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.StringTokenizer;
+
+public class BOJ1450_1 {
+	static long[] getArr(StringTokenizer st, int N, int[] pow) {
+		long[] arr = new long[pow[N]];
+		int cnt = 1;
+		for (int i = 0; i < N; i++) {
+			int size = cnt;
+			int val = Integer.parseInt(st.nextToken());
+			for (int j = 0; j < size; j++) {
+				arr[cnt++] = arr[j]+val;
+			}
+		}
+
+		return arr;
+	}
+
+	public static void main(String[] args) throws IOException {
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		StringTokenizer st = new StringTokenizer(br.readLine());
+
+		int N = Integer.parseInt(st.nextToken());
+		int C = Integer.parseInt(st.nextToken());
+
+		st = new StringTokenizer(br.readLine());
+		int[] pow = new int[N - N / 2 + 1];
+
+		pow[0] = 1;
+		for (int i = 1; i < pow.length; i++) {
+			pow[i] = pow[i - 1] * 2;
+		}
+
+		long[] arr1 = getArr(st, N/2, pow);
+		long[] arr2 = getArr(st, N - N / 2, pow);
+
+		Arrays.sort(arr1);
+		Arrays.sort(arr2);
+
+		int p = 0;
+		int cnt = 0;
+		for (int i = arr1.length - 1; i >= 0; i--) {
+
+			while (p < arr2.length && arr2[p] + arr1[i] <= C) {
+				p++;
+			}
+			cnt+=p;
+		}
+		System.out.println(cnt);
+	}
+
+}
+
+
+*/
